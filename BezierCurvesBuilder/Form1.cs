@@ -19,7 +19,7 @@ namespace BezierCurvesBuilder
         public Form1()
         {
             figure = new BezierPath();
-
+            time.Tick += new EventHandler(Animate);
             InitializeComponent();
         }
 
@@ -80,8 +80,26 @@ namespace BezierCurvesBuilder
         private Pen pen2 = new Pen(Color.Red, 2);
         private Pen pen3 = new Pen(Color.Red, 5);
 
+        private void DrawGrid(PaintEventArgs e)
+        {
+            Font font = new Font("Microsoft Sans Serif", 8);
+            Brush brush = new SolidBrush(Color.Black);
+            for (int i = 0; i < pictureBox1.Width; i += 50)
+            {
+                e.Graphics.DrawLine(new Pen(Color.Black,0.5f), i,0,i,pictureBox1.Height);
+                e.Graphics.DrawString((i).ToString(),font,brush,i,0);
+            }
+            for (int i = 0; i < pictureBox1.Height; i += 50)
+            {
+                e.Graphics.DrawLine(new Pen(Color.Black, 0.5f), 0,i, pictureBox1.Width,i);
+                e.Graphics.DrawString((i).ToString(), font, brush, 0,i);
+            }
+
+        }
+
         private void pictureBox1_Paint(object sender, PaintEventArgs e)
         {
+            DrawGrid(e);
             var t = figure.GetDrawingPointFs();
             for (int i = 1; i < t.Count; i++)
             {
@@ -166,8 +184,8 @@ namespace BezierCurvesBuilder
         List<PointF> anim1 = new List<PointF>();
         List<PointF> anim2 = new List<PointF>();
 
-        private int currentFrame=0;
-        private int maxFrame=100;
+        private int currentFrame = 0;
+        private int maxFrame = 100;
         private bool goesUp = true;
         Timer time = new Timer();
         private void button4_Click(object sender, EventArgs e)
@@ -223,9 +241,9 @@ namespace BezierCurvesBuilder
                 //pictureBox1.Invalidate();
 
                 
-                time.Tick += new EventHandler(Animate);
-                time.Interval = 10;
-                figure.controlPointFs=new PointF[anim1.Count].ToList();//To fill the main list
+               
+                time.Interval = 7;
+                figure.controlPointFs = new PointF[anim1.Count].ToList();//To fill the main list
                 time.Start();
 
             }
@@ -235,7 +253,7 @@ namespace BezierCurvesBuilder
             }
         }
 
-        public void Animate(Object myObject,  EventArgs myEventArgs)
+        public void Animate(Object myObject, EventArgs myEventArgs)
         {
             if (currentFrame == 0)
                 goesUp = true;
@@ -244,9 +262,8 @@ namespace BezierCurvesBuilder
 
             for (int i = 0; i < anim1.Count; i++)
             {
-                figure.controlPointFs[i]=new PointF(anim2[i].X - (anim2[i].X - anim1[i].X)*currentFrame/maxFrame,
-                    anim2[i].Y - (anim2[i].Y - anim1[i].Y)*currentFrame/maxFrame);
-               // figure.controlPointFs[i] =(new PointF(figure.controlPointFs[i].X+10, figure.controlPointFs[i].Y));
+                figure.controlPointFs[i] = new PointF(anim2[i].X - (anim2[i].X - anim1[i].X) * currentFrame / maxFrame,
+                     anim2[i].Y - (anim2[i].Y - anim1[i].Y) * currentFrame / maxFrame);               
             }
 
             if (goesUp)
@@ -260,5 +277,32 @@ namespace BezierCurvesBuilder
             pictureBox1.Invalidate();
 
         }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            bool rotation = true;
+            var m = (float)numericUpDown1.Value;
+            var n = (float)numericUpDown2.Value;
+            var angle = (float)numericUpDown3.Value;
+            angle *= (float)Math.PI / 180.0F;
+            if (angle == 0) rotation= false;
+            for (int i = 0; i < figure.controlPointFs.Count; i++)
+            {
+                if(rotation)
+                figure.controlPointFs[i] = new PointF(figure.controlPointFs[i].X - m, figure.controlPointFs[i].Y - n);
+                if (rotation)
+                    figure.controlPointFs[i] = new PointF(Convert.ToSingle(figure.controlPointFs[i].X *
+                Math.Cos(angle) - figure.controlPointFs[i].Y *
+                Math.Sin(angle))
+    ,
+                Convert.ToSingle(figure.controlPointFs[i].X *
+                Math.Sin(angle) + figure.controlPointFs[i].Y *
+                Math.Cos(angle)))
+                ;
+                figure.controlPointFs[i] = new PointF(figure.controlPointFs[i].X + m, figure.controlPointFs[i].Y + n);
+            }
+            pictureBox1.Invalidate();
+        }
     }
+
 }
